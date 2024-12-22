@@ -32,7 +32,7 @@ class Chain:
             raise OutputParserException("Context too big. Unable to parse jobs.")
         return res if isinstance(res, list) else [res]
 
-    def write_mail(self, job, links):
+    def write_mail(self, job, links, profile_input):
         key_responsibilities = job.get("description", "Responsibilities not specified.")
         required_skills = ", ".join(job.get("skills", []))
         experience_level = job.get("experience", "Experience level not specified.")
@@ -41,19 +41,17 @@ class Chain:
             ### JOB DESCRIPTION:
             {job_description}
             
+            ### PROFILE:
+            {profile}
+            
             ### INSTRUCTION:
-            You are Abdul Ghaffar Ansari, a Master's student in Artificial Intelligence at Brandenburgische Technische Universität, Cottbus, Germany, 
-            with a strong background in AI, MLOps, and data analytics. You are currently seeking a working student position to leverage your 
-            technical expertise and hands-on experience in cloud infrastructure, machine learning, and scalable applications. 
-            Your Contact Information: LinkedIn: https://www.linkedin.com/in/abdul-ghaffar-ansari-ai/ , and your GitHub: https://www.github.com/abdulghaffaransari.
-
-            Tailor this email to the specific job description provided above. Highlight how your skills align with:
+            Use the job description and profile to craft a personalized email. Highlight alignment with:
             - Key responsibilities: {key_responsibilities}
             - Required skills: {required_skills}
             - Preferred experience level: {experience_level}
             
-            Mention relevant projects and certifications from the portfolio that align with the job description. Use the following portfolio links: {link_list}.
-            Ensure the email is concise, professional, and specifically addresses the requirements of the job.
+            Mention relevant projects and certifications using the following portfolio links: {link_list}.
+            Ensure the email is concise, professional, and tailored to the job description.
 
             ### EMAIL (NO PREAMBLE):
             """
@@ -62,6 +60,7 @@ class Chain:
         chain_email = prompt_email | self.llm
         res = chain_email.invoke({
             "job_description": str(job),
+            "profile": profile_input,
             "key_responsibilities": key_responsibilities,
             "required_skills": required_skills,
             "experience_level": experience_level,
