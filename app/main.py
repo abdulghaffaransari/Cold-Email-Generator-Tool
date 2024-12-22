@@ -1,18 +1,43 @@
 import streamlit as st
+from langchain_community.document_loaders import WebBaseLoader
 
-# Title for the application
-st.title("📧 Working Student Cold Email Generator")
-
-# Input field for the user to provide a job posting URL
-url_input = st.text_input("Enter the Job Posting URL:", value="https://jobs.example.com/job/R-12345")
-
-# Submit button to trigger the email generation
-submit_button = st.button("Generate Email")
-
-if submit_button:
-    # Placeholder for the email generation logic
-    st.write("Email generated successfully!")
+from chains import Chain
+from portfolio import Portfolio
+from utils import clean_text
 
 
+def create_streamlit_app(llm, portfolio, clean_text):
+    st.title("📧 Working Student Cold Email Generator")
+    url_input = st.text_input("Enter a URL:", value="https://jobs.nike.com/job/R-33460")
+    submit_button = st.button("Submit")
 
-   
+    if submit_button:
+        try:
+            loader = WebBaseLoader([url_input])
+            data = clean_text(loader.load().pop().page_content)
+            portfolio.load_portfolio()
+            jobs = llm.extract_jobs(data)
+            
+            if not jobs:
+                st.error("No jobs found in the provided URL.")
+                return
+            
+            # Process only the first job or the most relevant one
+            job = jobs[0]  # Assuming the first job is the most relevant
+            skills = job.get('skills', [])
+            links = portfolio.query_links(skills)
+            email = llm.write_mail(job, links)
+            
+            # Display the generated email
+            st.code(email, language='markdown')
+        except Exception as e:
+            st.error(f"An Error Occurred: {e}")
+
+
+
+if __name__ == "__main__":
+    chain = Chain()
+    portfolio = Portfolio()
+    st.set_page_config(layout="wide", page_title="Cold Email Generator", page_icon="📧")
+    create_streamlit_app(chain, portfolio, clean_text)
+

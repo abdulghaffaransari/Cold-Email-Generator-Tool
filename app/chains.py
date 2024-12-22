@@ -33,6 +33,9 @@ class Chain:
         return res if isinstance(res, list) else [res]
 
     def write_mail(self, job, links):
+        key_responsibilities = job.get("description", "Responsibilities not specified.")
+        required_skills = ", ".join(job.get("skills", []))
+        experience_level = job.get("experience", "Experience level not specified.")
         prompt_email = PromptTemplate.from_template(
             """
             ### JOB DESCRIPTION:
@@ -43,20 +46,27 @@ class Chain:
             with a strong background in AI, MLOps, and data analytics. You are currently seeking a working student position to leverage your 
             technical expertise and hands-on experience in cloud infrastructure, machine learning, and scalable applications. 
             Your Contact Information: LinkedIn: https://www.linkedin.com/in/abdul-ghaffar-ansari-ai/ , and your GitHub: https://www.github.com/abdulghaffaransari.
+
+            Tailor this email to the specific job description provided above. Highlight how your skills align with:
+            - Key responsibilities: {key_responsibilities}
+            - Required skills: {required_skills}
+            - Preferred experience level: {experience_level}
             
-            
-            Use the information provided in your profile to write a professional email expressing your interest in the position mentioned above. 
-            Mention relevant skills and experiences that align with the role and describe how you can contribute to the organization.
-            Also, highlight your certifications and projects,that are highly relevant to job posting.
-            Ensure the email is concise, professional, and tailored to the job description. Include the most relevant links from the portfolio: {link_list}.
-            Do not provide a preamble.
-            
+            Mention relevant projects and certifications from the portfolio that align with the job description. Use the following portfolio links: {link_list}.
+            Ensure the email is concise, professional, and specifically addresses the requirements of the job.
+
             ### EMAIL (NO PREAMBLE):
-            
             """
         )
+
         chain_email = prompt_email | self.llm
-        res = chain_email.invoke({"job_description": str(job), "link_list": links})
+        res = chain_email.invoke({
+            "job_description": str(job),
+            "key_responsibilities": key_responsibilities,
+            "required_skills": required_skills,
+            "experience_level": experience_level,
+            "link_list": links
+        })
         return res.content
 
 if __name__ == "__main__":
