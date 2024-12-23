@@ -26,7 +26,7 @@ jobs:
         id: build-image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: ${{ secrets.ECR_REPO }}
+          ECR_REPOSITORY: ${{ secrets.ECR_REPOSITORY_NAME }}  # Corrected the variable
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -57,12 +57,12 @@ jobs:
             # Update Docker and login to ECR
             sudo apt-get update -y
             sudo apt-get install -y docker.io
-            aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | docker login --username AWS --password-stdin ${{ secrets.AWS_ECR_LOGIN_URI }}
 
             # Pull the latest image and run it
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
+            docker pull ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
             docker stop my-app || true && docker rm my-app || true
             docker run -d -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" \
                         -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" \
                         -e AWS_DEFAULT_REGION="${{ secrets.AWS_DEFAULT_REGION }}" \
-                        -p 8080:8080 --name my-app ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPO }}:latest
+                        -p 8080:8080 --name my-app ${{ secrets.AWS_ECR_LOGIN_URI }}/${{ secrets.ECR_REPOSITORY_NAME }}:latest
