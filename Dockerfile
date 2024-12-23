@@ -14,5 +14,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 8080
 
 # Run the application
-CMD ["python3", "app/main.py"]
+CMD ["python3", "streamlit run app/main.py"]
 
