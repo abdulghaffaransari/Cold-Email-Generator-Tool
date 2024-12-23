@@ -7,12 +7,16 @@ WORKDIR /app
 # Copy all files from the current directory into the container's /app directory
 COPY . .
 
-# Install the dependencies
+# Install system dependencies (if required for Python libraries like pandas, numpy, etc.)
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Expose the port the application runs on (if applicable, e.g., 8080)
-EXPOSE 8080
+# Expose the port that Streamlit will run on (default is 8501; change if needed)
+EXPOSE 8501
 
-# Run the application
-CMD ["python3", "streamlit run app/main.py"]
-
+# Run the Streamlit app
+CMD ["streamlit", "run", "app/main.py", "--server.port=8501", "--server.address=0.0.0.0"]
