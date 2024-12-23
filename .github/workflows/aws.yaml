@@ -53,6 +53,7 @@ jobs:
           host: ${{ secrets.EC2_PUBLIC_IP }}
           username: ubuntu
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
             # Update Docker and login to ECR
             sudo apt-get update -y
